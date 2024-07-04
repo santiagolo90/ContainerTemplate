@@ -1,0 +1,99 @@
+services:
+  frontend:
+    build:
+      context: ./builds/frontend/
+    volumes:
+      - ./src/frontend:/app
+    working_dir: /app
+    command: sh -c "npm install && npm run docker"
+    ports:
+      - 4200:4200
+    depends_on:
+      - mariadb
+      - nestjs
+    networks:
+      - app-network
+  dotnet:
+    build:
+      context: ./src/dotnet/
+      args:
+        - configuration=Debug
+    volumes:
+      - ./src/dotnet/DotnetTemplate:/remote_debugger:rw
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MariaDbConnection=Server=mariadb;Database=db;User=user;Password=password;
+    ports:
+      - 8080:8080
+
+  nestjs:
+    build:
+      context: ./builds/nestjs/
+    command: sh -c "npm install && npm run start"
+    working_dir: /app
+    volumes:
+      - ./src/nestjs:/app
+    ports:
+      - 3000:3000
+    environment:
+      - DB_NAME=db
+      - DB_USER=user
+      - DB_PASS=password
+      - DOMAIN=mariadb
+      - PORT=3000
+      - DB_PORT=3306
+      - DB_SYNC=1
+      - DB_TYPE=mariadb
+    depends_on:
+      - mariadb
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: "db"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "password"
+      MYSQL_ROOT_PASSWORD: "password"
+    volumes:
+      - "./src/db/mariadb:/var/lib/mysql"
+      - "./src/db/database:/docker-entrypoint-initdb.d"
+    ports:
+      - "3306:3306"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:master
+    ports:
+      - "8082:3000"
+    volumes:
+        - ./src/grafana/datasources:/etc/grafana/provisioning/datasources
+        - ./src/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+        prometheus:
+            condition: service_healthy
+    healthcheck:
+        test: wget -q --tries=1 -O- http://localhost:3000/
+        interval: 3s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus_grafprom
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./src/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+    healthcheck:
+        test: wget -q --tries=1 -O- http://localhost:9090/
+        interval: 3s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
+
+networks:
+  app-network:
+    driver: bridge
+

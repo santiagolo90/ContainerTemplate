@@ -1,0 +1,9 @@
+[submodule "src/frontend"]
+	path = src/frontend
+	url = https://github.com/santiagolo90/FrontTemplate.git
+[submodule "src/nestjs"]
+	path = src/nestjs
+	url = https://github.com/santiagolo90/nestjs-template.git
+[submodule "src/dotnet"]
+	path = src/dotnet
+	url = https://github.com/santiagolo90/DotnetTemplate.git

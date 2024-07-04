@@ -1,0 +1,9 @@
+[submodule "src/frontend"]
+	path = src/frontend
+	url = https://tibagroup@dev.azure.com/tibagroup/IAC%20Template/_git/FrontTemplate
+[submodule "src/dotnet"]
+	path = src/dotnet
+	url = https://tibagroup@dev.azure.com/tibagroup/IAC%20Template/_git/DotnetTemplate
+[submodule "src/nestjs"]
+	path = src/nestjs
+	url = https://tibagroup@dev.azure.com/tibagroup/IAC%20Template/_git/nestjs-template
